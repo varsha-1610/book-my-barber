@@ -1,12 +1,9 @@
-
-
-
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import adminReducer from "../adminSlice";
-import userReducer from "../shopSlice"; // Import your shopSlice reducer
-import clientReducer from '../clientSlice';
+import userReducer from "../shopSlice"; 
+import clientReducer from "../clientSlice";
 
 const adminPersistConfig = {
   key: "admin",
@@ -19,21 +16,34 @@ const userPersistConfig = {
 };
 
 const clientPersistConfig = {
-  key:"client",
+  key: "client",
   storage,
-}
+};
 
 const persistedAdminReducer = persistReducer(adminPersistConfig, adminReducer);
 const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
-const persistedClientReducer = persistReducer(clientPersistConfig,clientReducer)
+const persistedClientReducer = persistReducer(clientPersistConfig, clientReducer);
 
 const store = configureStore({
   reducer: {
     admin: persistedAdminReducer,
     user: persistedUserReducer,
-    client:persistedClientReducer,
-
+    client: persistedClientReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // 👇 ignore redux-persist actions that contain non-serializable values
+        ignoredActions: [
+          "persist/PERSIST",
+          "persist/REHYDRATE",
+          "persist/REGISTER",
+          "persist/FLUSH",
+          "persist/PAUSE",
+          "persist/PURGE",
+        ],
+      },
+    }),
 });
 
 export const persistor = persistStore(store);

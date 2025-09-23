@@ -1,90 +1,93 @@
-import React, { useState } from 'react'
+// src/pages/Client/Register.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
 import { toast } from "react-hot-toast";
-
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import jwt_decode from "jwt-decode";
 
-import Navbar from '../../components/users/Navbar';
-import Footer from '../../components/Footer';
- import styles from "../ClientStyles/Register.module.css"
- import { useUserData } from "../../contexts/userContexts";
+import Navbar from "../../components/users/Navbar";
+import Footer from "../../components/Footer";
+import styles from "../ClientStyles/Register.module.css";
+import { useUserData } from "../../contexts/userContexts";
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
+// ------------------- Google OAuth Component -------------------
+const GoogleAuthComponent = () => {
+  const Navigate = useNavigate();
 
+  const onSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwt_decode(credentialResponse.credential);
+      const gName = decoded.name;
+      const gEmail = decoded.email;
 
+      const { data } = await api.post("/googleLogin", { gName, gEmail });
 
- const GoogleAuthComponent = () => {
-   const Navigate = useNavigate();
-   const onSuccess = async (credentialResponse) => {
-     try {
-     
-       const decoded = jwt_decode(credentialResponse.credential);
-     
-       const gName = decoded.name;
-       const gEmail = decoded.email;
-       const { data } = await axios.post("/googleLogin", { gName, gEmail });
-       if (data.error) {
-         toast.error(data.error);
-       } else {
-         localStorage.setItem("userData", JSON.stringify(data));
-         Navigate("/");
-         toast.success("Login successful");
-       }
-     } catch (error) {
-       console.log(error);
-       toast.error("Something went wrong");
-     }
-   };
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        localStorage.setItem("userData", JSON.stringify(data));
+        Navigate("/");
+        toast.success("Login successful");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
+    }
+  };
 
-   const onError = () => {
-     console.log("Login Failed");
-   };
+  const onError = () => {
+    console.log("Google Login Failed");
+  };
 
-   return (
-     <GoogleOAuthProvider clientId="815839922134-9i576f0a2fcpt2bje8vpjo1gs1o8gk6s.apps.googleusercontent.com">
-       <GoogleLogin onSuccess={onSuccess} onError={onError} />
-     </GoogleOAuthProvider>
-   );
- };
+  return (
+    <GoogleOAuthProvider clientId="815839922134-9i576f0a2fcpt2bje8vpjo1gs1o8gk6s.apps.googleusercontent.com">
+      <GoogleLogin onSuccess={onSuccess} onError={onError} />
+    </GoogleOAuthProvider>
+  );
+};
 
-
+// ------------------- Register Component -------------------
 const Register = () => {
   const [userData, setUserData] = useState({
-    userName: '',
-    email : '',
-    password : '',
-    cPassword:''
-  })
- 
+    userName: "",
+    email: "",
+    password: "",
+    cPassword: "",
+  });
 
-  const Navigate = useNavigate()
-   const {setUserData : setUserDataContext} =useUserData()
+  const Navigate = useNavigate();
+  const { setUserData: setUserDataContext } = useUserData();
 
-  const registerUser = async(e) => {
+  const registerUser = async (e) => {
     e.preventDefault();
-    
-    const {userName,email,password,cPassword}=userData;
+    const { userName, email, password, cPassword } = userData;
 
-    try{
-      const {data} = await axios.post('/register', {
-        userName,email,password,cPassword
-      })
-      if(data.error){
-        toast.error(data.error)
-      }else{  
-        setUserDataContext({userName,email,password,cPassword})
-        setUserData({})   
-        Navigate('/clientOTP') 
-        
-        
-      }      
-    }catch(error){
-      toast.error(`error register `)
-      console.log(error)
+    try {
+      const { data } = await api.post("/register", {
+        userName,
+        email,
+        password,
+        cPassword,
+      });
+
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        // Save user data to context
+        setUserDataContext({ userName, email, password, cPassword });
+        // Reset form
+        setUserData({ userName: "", email: "", password: "", cPassword: "" });
+        // Navigate to OTP page, passing email
+        Navigate("/clientOTP", { state: { email } });
+        toast.success("Registration successful, please verify OTP");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error during registration");
     }
-    
-  }
+  };
+
   return (
     <>
       <Navbar />
@@ -100,37 +103,33 @@ const Register = () => {
                 <input
                   className={styles.input}
                   type="text"
-                  onChange={(e) => {
-                    setUserData({ ...userData, userName: e.target.value });
-                  }}
                   value={userData.userName}
+                  onChange={(e) => setUserData({ ...userData, userName: e.target.value })}
+                  required
                 />
                 <label>Email</label>
                 <input
                   className={styles.input}
                   type="email"
-                  onChange={(e) => {
-                    setUserData({ ...userData, email: e.target.value });
-                  }}
                   value={userData.email}
+                  onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                  required
                 />
                 <label>Password</label>
                 <input
                   className={styles.input}
                   type="password"
-                  onChange={(e) => {
-                    setUserData({ ...userData, password: e.target.value });
-                  }}
                   value={userData.password}
+                  onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+                  required
                 />
-                <label>confirm Password</label>
+                <label>Confirm Password</label>
                 <input
                   className={styles.input}
                   type="password"
-                  onChange={(e) => {
-                    setUserData({ ...userData, cPassword: e.target.value });
-                  }}
                   value={userData.cPassword}
+                  onChange={(e) => setUserData({ ...userData, cPassword: e.target.value })}
+                  required
                 />
 
                 <hr className={styles.divider} />
@@ -138,13 +137,15 @@ const Register = () => {
                 <button type="submit" className={styles.LoginButton}>
                   Submit
                 </button>
+
                 <br />
                 <div className={styles.google}>
                   <GoogleAuthComponent />
                 </div>
 
-                <h6 style={{ color: "black" }}>Already have an account.</h6>
+                <h6 style={{ color: "black" }}>Already have an account?</h6>
                 <button
+                  type="button"
                   onClick={() => Navigate("/login")}
                   className={styles.signUpbtn}
                 >
@@ -152,6 +153,7 @@ const Register = () => {
                 </button>
               </div>
             </form>
+
             <button
               className={styles.btn1}
               onClick={() => Navigate("/s/sRegister")}
@@ -170,6 +172,6 @@ const Register = () => {
       <Footer />
     </>
   );
-}
+};
 
-export default Register
+export default Register;

@@ -1,15 +1,18 @@
 import express from "express";
 const router = express.Router();
-import {adminLogin,getBeauticians,changeAccess,adminLogout,getClients,clientChangeAccess} from '../Controllers/adminController.js'
-import adminAuthMiddleware from '../Middlewares/adminAuth.js'
+import { 
+  registerUser, 
+  submitOtp, 
+  clientLogin, 
+  gClientLogin, 
+  clientResendOtp 
+} from '../Controllers/clientController.js';
 
+// Client routes
+router.post("/register", registerUser);
+router.post("/submit-otp", submitOtp);
+router.post("/login", clientLogin);
+router.post("/googleLogin", gClientLogin);
+router.post("/resend-otp", clientResendOtp);
 
-
-
-router.post("/admin",adminLogin)
-router.get("/beautician",adminAuthMiddleware,getBeauticians);
-router.get("/clients",adminAuthMiddleware,getClients);
-router.post("/update-access", changeAccess);
-router.post("/update-client-access",clientChangeAccess);
-router.post("/adminLogout",adminLogout);
-export default router
+export default router;
