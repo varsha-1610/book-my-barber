@@ -1,54 +1,43 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
-import  Style from  "../ModalComponent/Styles/NotificationModal.module.css"; 
-import { useSelector,useDispatch } from "react-redux";
-import {Notification} from '../../globelContext/clientSlice'
-import axios from "axios";
-import {toast} from "react-hot-toast";
+import Style from "../ModalComponent/Styles/NotificationModal.module.css"; 
+import { useSelector, useDispatch } from "react-redux";
+import { Notification } from "../../globelContext/clientSlice";
+import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/axiosInstance";
 
 const NotificationModal = ({ isOpen, onRequestClose }) => {
+  const user = useSelector((state) => state.client.user);
+  const dispatch = useDispatch();
+  const [noti, setNoti] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const Navigate = useNavigate();
 
-    const user = useSelector((state)=>state.client.user);
-    const dispatch = useDispatch()
-    const [noti, setNoti] = useState([]) ;
-    const Navigate = useNavigate()
+  useEffect(() => {
+    if (!user?.id) return;
 
-   
-    useEffect(() => {
-     let id
-       
-     async function  getNotification (){
-       
-        try {
-            const {data} = await axios.get('/getNotification',{
-                params:{
-                    userId:id
-                }
-            })
-         const details = data.details
-         setNoti(details)
-         dispatch(Notification(data.count))
+    const getNotification = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get("/getNotification", {
+          params: { userId: user.id },
+        });
 
-         
-        } catch (error) {
-            console.log(error)
-            toast.error('Something went wrong please re login')
-        }
-     }
-      if (user) {
-       id = user.id;
+        setNoti(Array.isArray(data) ? data : []); // Safely handle response
+        dispatch(Notification(Array.isArray(data) ? data.length : 0));
+      } catch (error) {
+        console.log("Notification fetch error:", error);
+        toast.error("Something went wrong, please re-login");
+        setNoti([]);
+        dispatch(Notification(0));
+      } finally {
+        setLoading(false);
       }
-     if(id){
-getNotification();
-     }
-     
-    
-  
-    }, [])
-    
+    };
 
-
+    getNotification();
+  }, [user, dispatch]);
 
   return (
     <Modal
@@ -58,17 +47,25 @@ getNotification();
       className={Style.notification_modal}
       overlayClassName={Style.notification_modal_overlay}
     >
-      {noti.length ? (
-        noti.map((datas, key) => (
-          <>
-            <p key={key} onClick={()=>Navigate('/details')} className={Style.bordered}>
-              ⏰ <i>You have an upcoming appointment scheduled for today at </i>
-              <b>{datas.time}</b>
-            </p>
-          </>
-        ))
+      <h2 className={Style.modalHeader}>Notifications</h2>
+
+      {loading ? (
+        <p>Loading notifications...</p>
+      ) : noti.length > 0 ? (
+        <ul className={Style.notificationList}>
+          {noti.map((item, index) => (
+            <li
+              key={index}
+              className={Style.bordered}
+              onClick={() => Navigate("/details")}
+            >
+              ⏰ <i>{item.message}</i>{" "}
+              {item.time && <b>{item.time}</b>}
+            </li>
+          ))}
+        </ul>
       ) : (
-        <></>
+        <p>No notifications</p>
       )}
 
       <button className={Style.clearButton} onClick={onRequestClose}>

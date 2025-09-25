@@ -13,6 +13,8 @@ import {
   jsonParseUserDataString,
 } from "../../helpers/JSONparse.js";
 
+import api from "../utils/axiosInstance.js";
+
 
 const Navbars = ({ scrolling }) => {
   const dispatch = useDispatch();
@@ -46,7 +48,7 @@ const Navbars = ({ scrolling }) => {
 
 
   const LogOUT = async () => {
-    const { data } = await axios.post("/logout");
+    const { data } = await api.post("/logout");
     if (data.success) {
       dispatch(logoutClient());
       setUser(null);
@@ -56,7 +58,7 @@ const Navbars = ({ scrolling }) => {
   };
 
   const LogOUTshop = async () => {
-    const { data } = await axios.post("/s/sLogout");
+    const { data } = await api.post("/s/sLogout");
     if (data.success) {
       dispatch(logoutShop());
       setShop(null);

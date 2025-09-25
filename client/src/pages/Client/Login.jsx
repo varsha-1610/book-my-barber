@@ -3,12 +3,12 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import jwt_decode from "jwt-decode";
 
 import styles from "../ClientStyles/Login.module.css";
-
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 import Navbar from "../../components/users/Navbar";
 import Footer from "../../components/Footer";
@@ -16,34 +16,35 @@ import { loginClient } from "../../globelContext/clientSlice";
 import { useUserData } from "../../contexts/userContexts";
 import { jsonParseUserDataString } from "../../../helpers/JSONparse.js";
 
+// ------------------ Google Auth ------------------
 const GoogleAuthComponent = () => {
   const Navigate = useNavigate();
   const dispatch = useDispatch();
+
   const onSuccess = async (credentialResponse) => {
     try {
-      console.log(credentialResponse);
       const decoded = jwt_decode(credentialResponse.credential);
-      console.log(decoded);
       const gName = decoded.name;
       const gEmail = decoded.email;
-      const { data } = await axios.post("/googleLogin", { gName, gEmail });
+
+      const { data } = await api.post("/googleLogin", { gName, gEmail });
+
       if (data.error) {
         toast.error(data.error);
       } else {
-        dispatch(loginClient(data))
-       
+        dispatch(loginClient(data));
         Navigate("/search");
         toast.success("Login successful");
-        
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      toast.error("Something went wrong in Google login");
     }
   };
 
   const onError = () => {
-    console.log("Login Failed");
+    console.log("Google Login Failed");
+    toast.error("Google login failed");
   };
 
   return (
@@ -53,6 +54,7 @@ const GoogleAuthComponent = () => {
   );
 };
 
+// ------------------ Main Login ------------------
 const Login = () => {
   const [data, setData] = useState({
     email: "",
@@ -61,51 +63,56 @@ const Login = () => {
 
   const Navigate = useNavigate();
   const { setUserData: setUserDataContext } = useUserData();
-
- 
   const dispatch = useDispatch();
 
+  // ------------------ Login ------------------
   const loginUser = async (e) => {
     e.preventDefault();
     const { email, password } = data;
-    try {
-      const { data } = await axios.post("/login", { email, password });
-      if (data.error) {
-        toast.error(data.error);
-      } else {
-       dispatch(loginClient(data));
 
+    try {
+      const { data: res } = await api.post("/login", { email, password });
+
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        dispatch(loginClient(res));
         Navigate("/search");
+        toast.success("Login successful");
       }
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
+  // ------------------ Forgot Password ------------------
   const forgotPassword = async () => {
-    let email = data.email;
-    try {
-      const { data } = await axios.post("/chPassword", { email: email });
+    const email = data.email;
+    if (!email) {
+      toast.error("Please enter your email first");
+      return;
+    }
 
-      if (data.error) {
-        toast.error(data.error);
+    try {
+      const { data: res } = await api.post("/changePassword", { email });
+
+      if (res.error) {
+        toast.error(res.error);
       } else {
-        setUserDataContext({ email: data.email });
-        Navigate("/chPOtp");
+        setUserDataContext({ email: res.email });
+        Navigate("/fClOtp"); // <-- Navigate to OTP verification page
+        toast.success("OTP sent to your email");
       }
     } catch (error) {
-      console.log(error, "error in 60 Login page");
+      console.log(error, "Error in forgotPassword");
+      toast.error("Something went wrong in Forgot Password");
     }
   };
 
+  // ------------------ Auto redirect if logged in ------------------
   useEffect(() => {
-  
-    let user = jsonParseUserDataString()
-
-    console.log(user)
-  
-
+    let user = jsonParseUserDataString();
     if (user) {
       Navigate("/search");
     }
@@ -120,42 +127,46 @@ const Login = () => {
             <h1 className={styles.Login_text}>Client Login</h1>
             <hr className={styles.divider} />
             <br />
-            <form action="" onSubmit={loginUser}>
+
+            <form onSubmit={loginUser}>
               <div className={styles.form_group}>
                 <label className={styles.label}>Email</label>
                 <input
                   className={styles.input}
                   type="email"
                   value={data.email}
-                  onChange={(e) => {
-                    setData({ ...data, email: e.target.value });
-                  }}
+                  onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
+
                 <label className={styles.label}>Password</label>
                 <input
                   className={styles.input}
                   type="password"
                   value={data.password}
-                  onChange={(e) => {
-                    setData({ ...data, password: e.target.value });
-                  }}
+                  onChange={(e) => setData({ ...data, password: e.target.value })}
                 />
+
                 <p onClick={forgotPassword} className={styles.forgot_p}>
                   Forgot Password
                 </p>
+
                 <hr className={styles.divider} />
                 <br />
+
                 <button type="submit" className={styles.LoginButton}>
                   Login
                 </button>
                 <br />
-           
+
                 <div className={styles.google}>
                   <GoogleAuthComponent />
                 </div>
 
-                <h6 className={styles.didnt} style={{ color: "black" }}>don’t have any account ? </h6>
+                <h6 className={styles.didnt} style={{ color: "black" }}>
+                  Don’t have an account?
+                </h6>
                 <button
+                  type="button"
                   onClick={() => Navigate("/register")}
                   className={styles.signUpbtn}
                 >
@@ -164,10 +175,7 @@ const Login = () => {
               </div>
             </form>
 
-            <button
-              className={styles.btn1}
-              onClick={() => Navigate("/s/sLogin")}
-            >
+            <button className={styles.btn1} onClick={() => Navigate("/s/sLogin")}>
               Beautician Login
             </button>
             <button className={styles.btn2} onClick={() => Navigate("/login")}>

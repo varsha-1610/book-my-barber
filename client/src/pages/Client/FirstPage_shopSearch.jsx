@@ -10,6 +10,8 @@ import { toast } from 'react-hot-toast'
 import { useDispatch } from 'react-redux'
 import {  logoutClient, shopList} from "../../globelContext/clientSlice";
 import { useNavigate } from 'react-router-dom'
+import api from "../../utils/axiosInstance";
+
 
 const FirstPage_shopSearch = () => {
   const dispatch = useDispatch()
@@ -24,7 +26,7 @@ const FirstPage_shopSearch = () => {
    
     const ifUser = async ()=>{
       try {
-        const {data} = await axios.get('/ifUser')
+        const {data} = await api.get('/ifUser')
         if(data.error){
             dispatch(logoutClient());
             toast.error(data.error);
@@ -48,7 +50,7 @@ const FirstPage_shopSearch = () => {
     e.preventDefault()
     
     try {
-      const {data} = await axios.post('/search',datas)
+      const {data} = await api.post('/search',datas)
    
       if(data.error){
         toast.error(data.error)

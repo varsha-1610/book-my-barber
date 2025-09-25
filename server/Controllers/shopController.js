@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import Shop from "../Models/shopModel.js";
 
 import { comparePassword, hashPassword } from "../Helpers/hashing.js";
-import { otp, transporter } from "../Helpers/otpCreate.js";
+import { otp, createTransporter } from "../Helpers/otpCreate.js";
 import { createToken, getToken } from "../utils/generateToken.js";
 import { getData } from "../utils/getDetails.js";
 import shop from "../Models/shopModel.js";
@@ -100,6 +100,7 @@ const ShopRegister = async (req, res) => {
     }
 
     let sendedOtp = otp();
+    const transporter = await createTransporter();
 
     const mailOptions = {
       from: "bookmybarber@gmail.com",
@@ -107,16 +108,9 @@ const ShopRegister = async (req, res) => {
       text: `Your OTP is   ${sendedOtp}`,
     };
 
-    transporter.sendMail(mailOptions, (err, info) => {
-      if (err) {
-        return res.status(500).send({ error: "Error sending OTP email" });
-        client.close();
-        return;
-      }
-    });
+    await transporter.sendMail(mailOptions);
 
     const currentTime = new Date();
-
     createToken(res, { otp: sendedOtp, time: currentTime });
     return res.json({ success: "success" });
   } catch (error) {

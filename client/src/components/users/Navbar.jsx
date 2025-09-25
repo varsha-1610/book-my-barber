@@ -13,6 +13,7 @@ import notification from "../../../public/contentImages/notification.png";
 import NotificationModal from "../ModalComponent/NotificationModal";
 
 import "./userStyles/Navbar.css"
+import api from "../../utils/axiosInstance";
 
 const Navbars = () => {
   const dispatch = useDispatch();
@@ -50,7 +51,7 @@ const count = useSelector((state) => state.client.notificationCount);
 
   const LogOut = async () => {
   
-    const { data } = await axios.post("/logout");
+    const { data } = await api.post("/logout");
     if (data.success) {
       // localStorage.removeItem("shopData");
       dispatch(logoutClient());
