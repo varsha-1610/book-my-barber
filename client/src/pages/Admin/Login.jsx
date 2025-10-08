@@ -8,6 +8,7 @@ import { useAdminData } from "../../contexts/userContexts";
 
 import { useDispatch,useSelector } from "react-redux";
 import { loginAdmin as adminLogin } from "../../globelContext/adminSlice";
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 
 const Login = () => {
@@ -28,7 +29,7 @@ const dispatch=useDispatch()
 
     const {email,password} = data;
     try {
-      const {data} = await axios.post('/ad/admin',{email,password});
+      const {data} = await api.post('/ad/admin',{email,password});
       if(data.error){
         toast.error(data.error)
       }else{

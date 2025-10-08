@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import {loginShop} from '../../globelContext/clientSlice';
 import { jsonParseShopDataString } from "../../../helpers/JSONparse";
 import { useUserData } from '../../contexts/userContexts';
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 const ShopLogin = () => {
   const Navigate = useNavigate();
@@ -28,7 +29,7 @@ const ShopLogin = () => {
     e.preventDefault()
     const {email,password}=data;
     try {
-      const {data}= await axios.post('/s/sLogin',{email,password});
+      const {data}= await api.post('/s/sLogin',{email,password});
     
       if(data.error){
        
@@ -64,9 +65,8 @@ const ShopLogin = () => {
    const forgotPassword = async() => {
     
     let email = data.email
-   
-    try {
-      const {data} = await axios.post("/s/chPassword",{email})
+   try {
+      const {data} = await api.post("/s/chPassword",{email})
 
       if(data.error){
         toast.error(data.error)
