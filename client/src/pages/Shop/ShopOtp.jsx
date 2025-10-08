@@ -7,6 +7,7 @@ import styles from '../ShopStyles/Otp.module.css'
 import { useUserData } from "../../contexts/userContexts";
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 const ShopOtp = () => {
   const [otp, setOtp] = useState("");
@@ -20,7 +21,7 @@ const ShopOtp = () => {
     userData.userOtp=otp;
     const {userName,email,password,cPassword,phoneNumber,address,businessName,zipCode,userOtp} = userData;
     try {
-      const { data } = await axios.post("/s/shopOtp", {
+      const { data } = await api.post("/s/shopOtp", {
         userName,
         email,
         password,
@@ -76,7 +77,7 @@ const ShopOtp = () => {
       try {
         setResendDisabled(true);
         setTimer(60);
-        axios
+        api
           .post("/s/shopResendOtp", { email: userData.email })
           .then((data) => {
             if (data.error) {

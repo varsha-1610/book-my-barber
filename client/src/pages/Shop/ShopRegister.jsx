@@ -7,6 +7,7 @@ import Navbar from "../../components/Shop/Navbar";
 import st from "../ShopStyles/Register.module.css";
 import { toast } from "react-hot-toast";
 import { useUserData } from "../../contexts/userContexts";
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 
 
@@ -41,7 +42,7 @@ const ShopRegister = () => {
     } = userData;
 
     try {
-      let { data } = await axios.post("/s/sRegister", {
+      let { data } = await api.post("/s/sRegister", {
         userName,
         email,
         password,

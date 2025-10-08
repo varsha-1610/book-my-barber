@@ -100,6 +100,7 @@ const ShopRegister = async (req, res) => {
     }
 
     let sendedOtp = otp();
+    console.log("Generated OTP:", sendedOtp);
     const transporter = await createTransporter();
 
     const mailOptions = {
@@ -179,8 +180,9 @@ const shopResendOtp = async (req, res) => {
   try {
     const { email } = req.body;
   
-    let sendedOtp = await otp();
-
+    let sendedOtp = otp();
+    console.log("Generated OTP:", sendedOtp);
+    const transporter = await createTransporter();
  
 
     const mailOptions = {
@@ -188,6 +190,8 @@ const shopResendOtp = async (req, res) => {
       to: email,
       text: `Your OTP is   ${sendedOtp}`,
     };
+
+    await transporter.sendMail(mailOptions);
 
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
