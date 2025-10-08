@@ -33,6 +33,7 @@ const registerUser = async (req, res) => {
     }
 
     const sendedOtp = otp();
+    console.log("Generated OTP:", sendedOtp);
     const transporter = await createTransporter();
 
     await transporter.sendMail({
