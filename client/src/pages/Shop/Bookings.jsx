@@ -17,6 +17,7 @@ import EmployeeFormModalLeave from "../../components/ModalComponent/EmloyeeLeave
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 const Bookings = () => {
   const Navigate = useNavigate();
@@ -88,7 +89,7 @@ const Bookings = () => {
 
        const ifShop = async () => {
           try {
-            const { data } = await axios.get("/s/sIfShop");
+            const { data } = await api.get("/s/sIfShop");
             if (data.error) {
               dispatch(logoutShop());
             }
@@ -101,7 +102,7 @@ const Bookings = () => {
 
     async function getEmployee() {
       try {
-        const { data } = await axios.get("/s/sBookings");
+        const { data } = await api.get("/s/sBookings");
       
 
         if (data.message ) {
@@ -235,7 +236,7 @@ const Bookings = () => {
         denyButtonText: `Cancel`,
       }).then((result) => {
         if (result.isConfirmed) {
-          axios
+          api
             .delete(`/s/delEm/${id}`)
             .then(({ data }) => {
               setRecords(data);
@@ -254,7 +255,7 @@ const Bookings = () => {
 
   const handleAccessClick = async (id) => {
     try {
-      const { data } = await axios.post("/s/sEditAccess", { id });
+      const { data } = await api.post("/s/sEditAccess", { id });
       if (data.error) {
         toast.error(data.error);
       } else {

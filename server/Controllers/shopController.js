@@ -229,12 +229,6 @@ const shopLogin = async (req, res) => {
       let match = await comparePassword(password, emailExist.password);
 
       if (match) {
-        if (!emailExist.access) {
-          return res.json({
-            waiting:
-              "Please wait a few seconds while we are checking your details.",
-          });
-        }
 
         createToken(res, {
           email: emailExist.email,
