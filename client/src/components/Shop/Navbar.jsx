@@ -10,6 +10,7 @@ import Hamburger from "../subComponents/Humberger";
 
 import "../users/userStyles/Navbar.css";
 import axios from "axios";
+import api from "../../utils/axiosInstance.js";
 import { toast } from "react-hot-toast";
 import { useSelector, useDispatch } from "react-redux";
 import {  logoutShop } from "../../globelContext/clientSlice.js"; 
@@ -34,7 +35,7 @@ const Navbars = () => {
   }, [])
   
    const LogOut = async () => {
-     const { data } = await axios.post("/s/sLogout");
+     const { data } = await api.post("/s/sLogout");
      if (data.success) {
       
        dispatch(logoutShop());

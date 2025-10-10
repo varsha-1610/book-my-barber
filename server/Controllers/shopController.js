@@ -383,37 +383,47 @@ const updatedPassword = async (req, res) => {
   }
 };
 
-const uploadFile = async (req,res) => {
-  console.log('(((((')
+const uploadFile = async (req, res) => {
   try {
-   
-    if(!req.files.length){
-      return res.json({error:'Chose images'})
+    // ✅ Check if files exist
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "Please choose images" });
     }
-   
+
+    // ✅ Get JWT token from headers
+    const token = await getToken(req);
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // ✅ Decode token to get shop data
+    let shopData;
+    try {
+      shopData = getData(token); // getData now throws error if invalid
+    } catch (err) {
+      return res.status(401).json({ error: err.message });
+    }
+
+    // ✅ Map uploaded files to filenames
     const filePaths = req.files.map((file) => file.filename);
-    const token = getToken(req)
-    const data = getData(token)
-   
-    
-   const updatedShop = await shop.findOneAndUpdate(
-     { _id: data.id },
-     { $push: { photos: { $each: filePaths } } },
-     { new: true } 
-   );
-    
-   if (!updatedShop) {
-     return res.json({ error: "Shop not found" });
-   }
-   
-   return res.json(updatedShop)
-    
+
+    // ✅ Update shop document
+    const updatedShop = await Shop.findByIdAndUpdate(
+      shopData.id,
+      { $push: { photos: { $each: filePaths } } },
+      { new: true }
+    );
+
+    if (!updatedShop) {
+      return res.status(404).json({ error: "Shop not found" });
+    }
+
+    return res.json({ message: "Images uploaded successfully", shop: updatedShop });
   } catch (error) {
-  console.log(error)   
+    console.error("Error in uploadFile:", error);
+    return res.status(500).json({ error: "Something went wrong while uploading images" });
   }
-   
- 
-}
+};
 
 
 

@@ -1,42 +1,26 @@
 import jwt from "jsonwebtoken";
 
 //shop
-const createToken = (res,data) => {
+const createToken = (res, data) => {
+  const token = jwt.sign(
+    { data },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" } // 1 day
+  );
 
-    
-    let token = jwt.sign(
-        { data, exp: Math.floor(Date.now() / 1000) * (60 * 60) },
-       process.env.JWT_SECRET
-       );
-       
-       const expiration = new Date(new Date().getTime() + 3600000);
-      res.set(
-        "Set-Cookie",
-        `abhi=${token};httpOnly:false;SameSite=Strict;Expires=${expiration.toUTCString()}`
-        );
-    }
+  // Set cookie properly
+  res.cookie("abhi", token, {
+    httpOnly: true,       // cannot be accessed by JS
+    secure: false,        // true in production with HTTPS
+    sameSite: "lax",      // allows sending cookie from frontend
+    maxAge: 60 * 60 * 1000
+  });
+};
 
-
-    const getToken = ( req ) => {
-    
-              let cookieHeaderValue = req.headers.cookie;
-              let token = null;
-
-              if (cookieHeaderValue) {
-                let cookies = cookieHeaderValue.split(";");
-
-                for (let cookie of cookies) {
-                  let [cookieName, cookieValue] = cookie.trim().split("=");
-
-                  if (cookieName === "abhi") {
-                    token = cookieValue;
-                    return token
-                    break;
-                  }
-                }
-              }
-
-    }
+const getToken = (req) => {
+  if (!req.cookies || !req.cookies.abhi) return null; // unauthorized
+  return req.cookies.abhi;
+};
 
 
 //user

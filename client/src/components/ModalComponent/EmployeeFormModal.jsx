@@ -13,6 +13,7 @@ import {toast} from 'react-hot-toast'
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/axiosInstance.js";
 
 const isValidTime = (time) => {
   const timePattern = /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM|am|pm)$/i;
@@ -43,7 +44,7 @@ const EmployeeFormModal = ({ isOpen, onRequestClose }) => {
     const handleSubmit= async(e)=>{
 
       e.preventDefault()
-
+      console.log("Time: ", time);
       const isTimeValid = time.every((option) => isValidTime(option.value));
       if (!isTimeValid) {
         toast.error("Invalid time format entered");
@@ -68,7 +69,7 @@ const EmployeeFormModal = ({ isOpen, onRequestClose }) => {
            };
 
            console.log(details);
-           const { data } = await axios.post("/s/sAddEmployee", {
+           const { data } = await api.post("/s/sAddEmployee", {
              details,
            });
            if (data.error) {

@@ -11,13 +11,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 import { Carousel } from "react-responsive-carousel";
+import api from "../../utils/axiosInstance";
 
 const ShowShopImg = () => {
   const [records, setRecords] = useState([]);
   useEffect(() => {
     const getImg = async () => {
       try {
-        const { data } = await axios.get("/s/sGetShopImg");
+        const { data } = await api.get("/s/sGetShopImg");
         if (data.error) {
           toast.error(data.error);
         } else {
@@ -43,7 +44,7 @@ const ShowShopImg = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const { data } = await axios.delete(`/s/sDeleteShopImg/${datas}`);
+          const { data } = await api.delete(`/s/sDeleteShopImg/${datas}`);
           if (data.error) {
             toast.error(data.error);
           } else {
@@ -83,7 +84,7 @@ const ShowShopImg = () => {
                     <div>
                       <img
                         className={Styles.styleImg}
-                        src={`http://www.dabj.online/uploads/${data}`}
+                        src={`http://localhost:3000/uploads/${data}`}
                         alt=""
                       />
                     </div>

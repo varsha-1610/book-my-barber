@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { styles } from "../styles.js";
 import Style from "../../style.module.css";
 import axios from "axios";
+import api from "../../../../utils/axiosInstance.js";
 
 import Avatar from "../Avatar.jsx";
 import sendIcon from "../../../../../public/contentImages/sendIcon.png";
@@ -31,7 +32,7 @@ const EmailForm = (props) => {
   useEffect(() => {
     async function getChats() {
       try {
-        const { data } = await axios.get("/s/getChatShop", {
+        const { data } = await api.get("/s/getChatShop", {
           params: {
             shopId: shop.id,
           },
@@ -59,7 +60,7 @@ const EmailForm = (props) => {
     });
 
     try {
-      const { data } = await axios.get("/s/getDualChat", {
+      const { data } = await api.get("/s/getDualChat", {
         params: {
           roomId: roomId,
         },
@@ -78,7 +79,7 @@ const EmailForm = (props) => {
 
   const handleSendMessage = async () => {
     try {
-      const { data } = await axios.post("/s/sendedShopMsg", {
+      const { data } = await api.post("/s/sendedShopMsg", {
         msg: messageText,
         roomId: userID.roomId,
         userId: userID.userId,
