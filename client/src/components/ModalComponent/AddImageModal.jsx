@@ -6,6 +6,7 @@ import Styles from './Styles/AddImage.module.css'
 
 
 import axios from "axios";
+import api from "../../utils/axiosInstance";
 import { toast } from "react-hot-toast";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -38,7 +39,7 @@ const AddImageModal = ({ isOpen, onRequestClose }) => {
 
      formData.append("cat", selectedCat);
      formData.append("name", selectedName);
-    axios
+    api
       .post("/s/sStyleImage", formData)
       .then(({ data }) => {
         if (data.error) {

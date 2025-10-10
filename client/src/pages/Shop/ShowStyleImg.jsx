@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 
 
 import axios from "axios";
+import api from "../../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
@@ -19,7 +20,7 @@ const ShowStyleImg = () => {
  useEffect(() => {
    const getImg =async()=>{
     try {
-        const {data} = await axios.get('/s/sGetImg')
+        const {data} = await api.get('/s/sGetImg')
        if(data.error){
         toast.error(data.error)
        }else{
@@ -51,7 +52,7 @@ const ShowStyleImg = () => {
       if (result.isConfirmed) {
   try {
 
-     const {data} = await axios.delete(`/s/sDeleteImg/${id}`)
+     const {data} = await api.delete(`/s/sDeleteImg/${id}`)
      if(data.error){
         toast.error(data.error)
      }else{
@@ -92,7 +93,7 @@ const ShowStyleImg = () => {
                   <div>
                     <img
                       className={Styles.styleImg}
-                      src={`http://www.dabj.online/uploads/${data.photos}`}
+                      src={`http://localhost:3000/uploads/${data.photos}`}
                       alt=""
                     />
                   </div>
