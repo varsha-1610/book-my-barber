@@ -13,7 +13,7 @@ import Footer from "../../components/Footer";
 import { logoutClient, employeeList as saveEmploye,clearEmployee,shopList } from "../../globelContext/clientSlice";
 import { shop } from "../../globelContext/clientSlice";
 import CaptchaModal from "../../components/ModalComponent/CaptchaModal";
-
+import api from "../../utils/axiosInstance"
 
 
 import Chat from '../../components/Chat/supportEngine/supportEngine';
@@ -58,7 +58,7 @@ const FilterPage = () => {
   useEffect(() => {
     const ifUser = async () => {
       try {
-        const { data } = await axios.get("/ifUser");
+        const { data } = await api.get("/ifUser");
         if (data.error) {
           dispatch(logoutClient());
 
@@ -74,7 +74,7 @@ const FilterPage = () => {
   
      
       try {
-        const { data } = await axios.get(`/s/sGetImgs/${oneShop[0]._id}`);
+        const { data } = await api.get(`/s/sGetImgs/${oneShop[0]._id}`);
       
         setImg(data);
       } catch (error) {
@@ -164,7 +164,7 @@ const FilterPage = () => {
          }
       const valuesArray = finalServices.map((option) => option.value);
        
-      const { data } = await axios.post("/s/getSlot", {
+      const { data } = await api.post("/s/getSlot", {
         Employee: finalEmployee.value,
         selectedDate,
         services: valuesArray,
@@ -286,7 +286,7 @@ const FilterPage = () => {
               {img.map((imageName, index) => (
                 <img
                   key={index}
-                  src={`http://www.dabj.online/uploads/${imageName}`}
+                  src={`http://localhost:3000/uploads/${imageName}`}
                   alt=""
                   className={Style.pic}
                 />

@@ -3,6 +3,7 @@ import { styles } from "../styles.js";
 import Style from "../../style.module.css";
 // import { LoadingOutlined } from "@ant-design/icons";
 import axios from "axios";
+import api from "../../../../utils/axiosInstance.js"
 
 import Avatar from "../Avatar.jsx";
 import sendIcon from "../../../../../public/contentImages/sendIcon.png";
@@ -22,7 +23,7 @@ const EmailForm = (props) => {
   useEffect(() => {
     async function getChats() {
       try {
-        const { data } = await axios.get("/getChats", {
+        const { data } = await api.get("/getChats", {
           params: {
             shopId: shop[0]._id,
             userId: user.id,
@@ -45,7 +46,7 @@ const EmailForm = (props) => {
 
   const handleSendMessage = async () => {
     try {
-      const { data } = await axios.post("/sendedMsg", {
+      const { data } = await api.post("/sendedMsg", {
         msg: messageText,
         shopId: shop[0]._id,
         userId: user.id,

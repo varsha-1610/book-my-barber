@@ -310,58 +310,89 @@ const getUser = async (req, res) => {
 
 // ------------------ Search shops ------------------
 const searchShop = async (req, res) => {
-  const { pincode, name } = req.body;
+  try {
+    const { pincode, name } = req.body;
 
-  if (!pincode && !name) {
-    return res.json({ error: "Search shops using proper keys" });
-  }
-
-  if (pincode && !name) {
-    const stringZipcode = pincode.toString();
-    const pinCodeRegex = /^[1-9][0-9]{5}$/;
-    const validZip = pinCodeRegex.test(stringZipcode);
-
-    if (!validZip) {
-      return res.json({ error: "Enter valid pincode" });
+    if (!pincode && !name) {
+      return res.json({ error: "Search shops using proper keys" });
     }
 
-    const shops = await Shops.find(
-      { zipcode: pincode, access: true },
-      { businessName: 1, address: 1, phoneNumber: 1, zipcode: 1, _id: 1, photos: 1 }
-    );
+    // --- Search by pincode only ---
+    if (pincode && !name) {
+      const stringZipcode = pincode.toString();
+      const pinCodeRegex = /^[1-9][0-9]{5}$/;
+      const validZip = pinCodeRegex.test(stringZipcode);
 
-    if (shops.length) {
-      return res.json(shops);
-    } else {
-      return res.json({ error: "No shops found with this pincode." });
+      if (!validZip) {
+        return res.json({ error: "Enter valid pincode" });
+      }
+
+      const shops = await Shops.find(
+        { zipcode: pincode },
+        {
+          businessName: 1,
+          address: 1,
+          phoneNumber: 1,
+          zipcode: 1,
+          _id: 1,
+          photos: 1,
+        }
+      );
+
+      if (shops.length) {
+        return res.json(shops);
+      } else {
+        return res.json({ error: "No shops found with this pincode." });
+      }
     }
-  }
 
-  if (!pincode && name) {
+    // --- Search by name only ---
+    if (!pincode && name) {
+      const regexPattern = new RegExp(name, "i");
+      const shops = await Shops.find(
+        { businessName: { $regex: regexPattern } },
+        {
+          businessName: 1,
+          address: 1,
+          phoneNumber: 1,
+          zipcode: 1,
+          _id: 1,
+          photos: 1,
+        }
+      );
+
+      if (shops.length) {
+        return res.json(shops);
+      } else {
+        return res.json({ error: "No shops found with this name." });
+      }
+    }
+
+    // --- Search by both name and pincode ---
     const regexPattern = new RegExp(name, "i");
     const shops = await Shops.find(
-      { businessName: { $regex: regexPattern }, access: true },
-      { businessName: 1, address: 1, phoneNumber: 1, zipcode: 1, _id: 1, photos: 1 }
+      { businessName: { $regex: regexPattern }, zipcode: pincode },
+      {
+        businessName: 1,
+        address: 1,
+        phoneNumber: 1,
+        zipcode: 1,
+        _id: 1,
+        photos: 1,
+      }
     );
 
     if (shops.length) {
       return res.json(shops);
     } else {
-      return res.json({ error: "No shops found with this name." });
+      return res.json({ error: "No shops found with these details." });
     }
-  }
-
-  const shops = await Shops.find(
-    { businessName: name, access: true },
-    { businessName: 1, address: 1, phoneNumber: 1, zipcode: 1, _id: 1, photos: 1 }
-  );
-
-  if (shops.length) {
-    return res.json(shops);
-  } else {
-    return res.json({ error: "No shops found with these details." });
+  } catch (error) {
+    console.log("Error in searchShop:", error);
+    return res.status(500).json({ error: "Something went wrong in searchShop" });
   }
 };
+
 
 // ------------------ Check if user is valid ------------------
 const ifUser = async (req, res) => {

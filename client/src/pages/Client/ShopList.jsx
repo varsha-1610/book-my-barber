@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/axiosInstance"
 
 const ShopLists = () => {
   const [shop, setShop] = useState([]);
@@ -34,7 +35,7 @@ const ShopLists = () => {
   useEffect(() => {
     const ifUser = async () => {
       try {
-        const { data } = await axios.get("/ifUser");
+        const { data } = await api.get("/ifUser");
         if (data.error) {
           dispatch(logoutClient());
           toast.error(data.error);
@@ -64,7 +65,7 @@ const ShopLists = () => {
 
   const goShop = async (id) => {
     try {
-      const { data } = await axios.post("/s/getEmployee", { id });
+      const { data } = await api.post("/s/getEmployee", { id });
 
       if (data.error) {
         toast.error(data.error);
@@ -89,7 +90,7 @@ const ShopLists = () => {
               variant="top"
               src={
                 list.photos && list.photos.length
-                  ? `http://www.dabj.online/uploads/${list.photos[0]}`
+                  ? `http://localhost:3000/uploads/${list.photos[0]}`
                   : "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8YmFyYmVyc2hvcHxlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80"
               }
             />
