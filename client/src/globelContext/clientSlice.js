@@ -1,5 +1,6 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import api from "../utils/axiosInstance"; // Axios instance with baseURL
 
 
 export const fetchUserData = createAsyncThunk(
@@ -7,7 +8,7 @@ export const fetchUserData = createAsyncThunk(
   async () => {
     try {
       // Replace with your API endpoint
-      const {data} = await axios.get("/getUser");
+      const {data} = await api.get("/getUser");
       return data; // Assuming the API response contains user data
     } catch (error) {
       console.log(error)

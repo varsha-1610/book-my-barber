@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 
-import axios from "axios";
 import { BsPencil } from "react-icons/bs";
 import { FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
 import Navbar from "../../components/Shop/Navbar";
 import SubNav from "../../components/Shop/SubNav";
@@ -14,99 +16,37 @@ import { logoutShop } from "../../globelContext/clientSlice";
 import EmployeeFormModal from "../../components/ModalComponent/EmployeeFormModal";
 import EmployeeFormModalForDate from "../../components/ModalComponent/EmployeeFormModalForDate";
 import EmployeeFormModalLeave from "../../components/ModalComponent/EmloyeeLeave";
-import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import api from "../../utils/axiosInstance"; // Axios instance with baseURL
 
 const Bookings = () => {
   const Navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const shop = useSelector((state) => state.client.shop);
+  const rehydrated = useSelector((state) => state._persist?.rehydrated);
+
+  // Redirect if shop is not logged in
+  useEffect(() => {
+    if (!rehydrated) return; // wait for Redux Persist
+    if (!shop) Navigate("/s/sLogin");
+  }, [shop, rehydrated, Navigate]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalForDateOpen, setIsModalForDateOpen] = useState(false);
-  const [isModalForLeave,setIsModalForLeave] = useState(false)
+  const [isModalForLeave, setIsModalForLeave] = useState(false);
   const [id, setId] = useState("");
   const [records, setRecords] = useState([]);
+  const [filterRecords, setFilterRecords] = useState([]);
 
- 
-  const renderDateWithEditIcon = (row) => {
-    const date = new Date(row.date);
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    const formattedDate = date.toLocaleDateString(undefined, options);
-
-    return (
-      <div>
-        <span>{formattedDate}</span>
-        <button
-          onClick={() => openModalForDate(row._id)}
-          style={{
-            marginLeft: "5px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <BsPencil />
-        </button>
-      </div>
-    );
-  };
-  
-  const takeLeave = (row) => {
-    const date = new Date(row.leave);
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    const formattedDate = date.toLocaleDateString(undefined, options);
-
-    return (
-      <div>
-        <span>{formattedDate}</span>
-        <button
-          onClick={() => openModalForLeave(row._id)}
-          style={{
-            marginLeft: "5px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <BsPencil />
-        </button>
-      </div>
-    );
-  };
-
+  // Fetch bookings only if shop exists and is rehydrated
   useEffect(() => {
+    if (!rehydrated || !shop) return;
 
-
-       const ifShop = async () => {
-          try {
-            const { data } = await api.get("/s/sIfShop");
-            if (data.error) {
-              dispatch(logoutShop());
-            }
-          } catch (error) {
-            dispatch(logoutShop());
-            toast.error("Server please re login");
-          }
-        };
-        ifShop();
-
-    async function getEmployee() {
+    const fetchData = async () => {
       try {
         const { data } = await api.get("/s/sBookings");
-      
-
-        if (data.message ) {
-          toast.error("Something went wrong please do re-login");
+        if (data.message) {
+          toast.error("Something went wrong, please re-login");
           dispatch(logoutShop());
           Navigate("/s/sLogin");
         } else {
@@ -114,141 +54,103 @@ const Bookings = () => {
           setFilterRecords(data);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         toast.error("Something went wrong");
       }
-    }
+    };
 
-    getEmployee();
-  }, [isModalOpen, id]);
+    fetchData();
+  }, [rehydrated, shop, Navigate, dispatch, isModalOpen, id]);
 
-  const openModal = () => {
-    setIsModalOpen(true);
+  const handleFilter = (event) => {
+    const newData = filterRecords.filter(
+      (row) =>
+        row.employeeName.toLowerCase().includes(event.target.value.toLowerCase()) ||
+        row.date.toLowerCase().includes(event.target.value.toLowerCase())
+    );
+    setRecords(newData);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
   const openModalForDate = (id) => {
     setId(id);
     setIsModalForDateOpen(true);
   };
-
   const openModalForLeave = (id) => {
     setId(id);
-    setIsModalForLeave(true)
-  }
-
+    setIsModalForLeave(true);
+  };
   const closeModalForDate = () => {
     setIsModalForDateOpen(false);
     setIsModalForLeave(false);
   };
- 
 
-  const customStyles = {
-    headRow: {
-      style: {
-        backgroundColor: "black",
-        color: "white",
-      },
-    },
-    headCells: {
-      style: {
-        fontSize: "16px",
-        fontWeight: "600",
-        textTransform: "uppercase",
-      },
-    },
-    cells: {
-      style: {
-        fontSize: "15px",
-      },
-    },
+  const renderDateWithEditIcon = (row) => {
+    const date = new Date(row.date).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    return (
+      <div>
+        <span>{date}</span>
+        <button onClick={() => openModalForDate(row._id)} style={{ marginLeft: "5px", background: "none", border: "none", cursor: "pointer" }}>
+          <BsPencil />
+        </button>
+      </div>
+    );
+  };
+
+  const takeLeave = (row) => {
+    const date = new Date(row.leave).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    return (
+      <div>
+        <span>{date}</span>
+        <button onClick={() => openModalForLeave(row._id)} style={{ marginLeft: "5px", background: "none", border: "none", cursor: "pointer" }}>
+          <BsPencil />
+        </button>
+      </div>
+    );
   };
 
   const column = [
-    {
-      name: "Employee Name",
-      selector: (row) => row.employeeName,
-      sortable: true,
-    },
-    {
-      name: "Time",
-      selector: (row) => (
-        <ul>
-          {row.Time.map((time, index) => (
-            <li key={index}>{time}</li>
-          ))}
-        </ul>
-      ),
-      sortable: true,
-    },
-    {
-      name: "Services",
-      selector: (row) => (
-        <ul>
-          {row.service.map((time, index) => (
-            <li key={index}>{time}</li>
-          ))}
-        </ul>
-      ),
-      sortable: true,
-    },
-    {
-      name: "Date",
-      selector: "date",
-      sortable: true,
-      cell: renderDateWithEditIcon,
-    },
-
+    { name: "Employee Name", selector: (row) => row.employeeName, sortable: true },
+    { name: "Time", selector: (row) => <ul>{row.Time.map((t, i) => <li key={i}>{t}</li>)}</ul>, sortable: true },
+    { name: "Services", selector: (row) => <ul>{row.service.map((s, i) => <li key={i}>{s}</li>)}</ul>, sortable: true },
+    { name: "Date", selector: "date", sortable: true, cell: renderDateWithEditIcon },
     {
       name: "Access",
-      selector: (row) => row.access,
-
       cell: (row) => (
         <div className={Styles.btnTrash}>
-          <button
-            className={row.access ? Styles.redButton : Styles.greenButton}
-            onClick={() => handleAccessClick(row._id)}
-          >
+          <button className={row.access ? Styles.redButton : Styles.greenButton} onClick={() => handleAccessClick(row._id)}>
             {row.access ? "Hide" : "UnHide"}
           </button>
-          <div>
-            <FaTrash onClick={() => deleteEmployee(row._id)} />
-          </div>
+          <div><FaTrash onClick={() => deleteEmployee(row._id)} /></div>
         </div>
       ),
     },
-    {
-      name: "Leave Date",
-      cell: takeLeave,
-
-    },
+    { name: "Leave Date", cell: takeLeave },
   ];
 
   const deleteEmployee = async (id) => {
     try {
-      Swal.fire({
-        title: "Do you want to Delete ?",
-        showDenyButton: false,
+      const result = await Swal.fire({
+        title: "Do you want to Delete?",
         showCancelButton: true,
         confirmButtonText: "Delete",
-        denyButtonText: `Cancel`,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          api
-            .delete(`/s/delEm/${id}`)
-            .then(({ data }) => {
-              setRecords(data);
-            })
-            .catch((error) => {
-              console.error("Error deleting resource:", error);
-            });
-          Swal.fire("Saved!", "", "success");
-        }
       });
+      if (result.isConfirmed) {
+        const { data } = await api.delete(`/s/delEm/${id}`);
+        setRecords(data);
+        Swal.fire("Deleted!", "", "success");
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("Something went wrong");
     }
   };
@@ -256,27 +158,20 @@ const Bookings = () => {
   const handleAccessClick = async (id) => {
     try {
       const { data } = await api.post("/s/sEditAccess", { id });
-      if (data.error) {
-        toast.error(data.error);
-      } else {
-        setRecords(data);
-      }
+      if (data.error) toast.error(data.error);
+      else setRecords(data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error("Something went wrong");
     }
   };
-  const [filterRecords, setFilterRecords] = useState([]);
-  const handleFilter = (event) => {
-    const newData = filterRecords.filter(
-      (row) =>
-        row.employeeName
-          .toLowerCase()
-          .includes(event.target.value.toLowerCase()) ||
-        row.date.toLowerCase().includes(event.target.value.toLowerCase())
-    );
-    setRecords(newData);
+
+  const customStyles = {
+    headRow: { style: { backgroundColor: "black", color: "white" } },
+    headCells: { style: { fontSize: "16px", fontWeight: "600", textTransform: "uppercase" } },
+    cells: { style: { fontSize: "15px" } },
   };
+
   return (
     <>
       <Navbar />
@@ -284,39 +179,16 @@ const Bookings = () => {
       <div className={Styles.body}>
         <div style={{ padding: "50px 10%", paddingBottom: "6rem" }}>
           <div style={{ display: "flex", justifyContent: "right" }}>
-            <input
-              type="text"
-              placeholder="🔍Search..."
-              className={Styles.inputSearch}
-              onChange={handleFilter}
-              style={{ padding: "6px 10px" }}
-            />
+            <input type="text" placeholder="🔍Search..." className={Styles.inputSearch} onChange={handleFilter} style={{ padding: "6px 10px" }} />
           </div>
-          <button className={Styles.btn} onClick={openModal}>
-            ADD EMPLOYEE
-          </button>
-          <DataTable
-            columns={column}
-            data={records}
-            customStyles={customStyles}
-            pagination
-          />
+          <button className={Styles.btn} onClick={openModal}>ADD EMPLOYEE</button>
+          <DataTable columns={column} data={records} customStyles={customStyles} pagination />
         </div>
       </div>
       <Footer />
       <EmployeeFormModal isOpen={isModalOpen} onRequestClose={closeModal} />
-      <EmployeeFormModalForDate
-        isOpen={isModalForDateOpen}
-        onRequestClose={closeModalForDate}
-        empId={id}
-        onDateUpdate={setRecords}
-      />
-      <EmployeeFormModalLeave 
-       isOpen={isModalForLeave}
-       onRequestClose={closeModalForDate}
-       empId={id}
-       onDateUpdate={setRecords}
-       />
+      <EmployeeFormModalForDate isOpen={isModalForDateOpen} onRequestClose={closeModalForDate} empId={id} onDateUpdate={setRecords} />
+      <EmployeeFormModalLeave isOpen={isModalForLeave} onRequestClose={closeModalForDate} empId={id} onDateUpdate={setRecords} />
     </>
   );
 };
