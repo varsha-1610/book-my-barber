@@ -19,7 +19,7 @@ const EmailForm = (props) => {
   const user = useSelector((state) => state.client.user);
   const shop = useSelector((state) => state.client.shopDetails);
 
-  console.log(message);
+  
   useEffect(() => {
     async function getChats() {
       try {

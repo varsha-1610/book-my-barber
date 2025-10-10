@@ -9,6 +9,7 @@ import Footer from '../../components/Footer';
 import { useDispatch } from 'react-redux';
 import { logoutClient } from '../../globelContext/clientSlice';
 import { FaCheckCircle } from "react-icons/fa"; 
+import api from '../../utils/axiosInstance';
 
 
 const Details = () => {
@@ -18,7 +19,7 @@ const dispatch = useDispatch()
      useEffect(() => {
        async function getDetails() {
          try {
-           const { data } = await axios.get("/details");
+           const { data } = await api.get("/details");
            if (data.message) {
              dispatch(logoutClient());
              toast.error("Something went wrong please do re-login");
@@ -136,7 +137,7 @@ const dispatch = useDispatch()
               }).then(async(result) => {
                 
                 if (result.isConfirmed) {
-                     const {data} = await axios.post('/cancel',{id})
+                     const {data} = await api.post('/cancel',{id})
               if(data.error){
                 toast.error(data.error)
               }else{

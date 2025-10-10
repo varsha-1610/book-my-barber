@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/axiosInstance";
 
 import "react-responsive-carousel/lib/styles/carousel.min.css"; 
 import { Carousel } from "react-responsive-carousel";
@@ -36,7 +37,7 @@ const Styles = () => {
   useEffect(() => {
     async function ifUser() {
       try {
-        const { data } = await axios.get("/s/style");
+        const { data } = await api.get("/s/style");
       
 
         // Organize data by category
